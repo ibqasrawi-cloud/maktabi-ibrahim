@@ -1201,26 +1201,25 @@ function showTab(id,btn){
 }
 
 // ── Task Modal ────────────────────────────────────────────────────────────────
-function buildCoPicker(containerId,formObj,key){
+function buildCoPicker(containerId,formObj){
   const el=document.getElementById(containerId);
-  el.innerHTML=COMPANIES.map(c=>`<button type="button" class="co-pick-btn${formObj[key]===c.id?" sel":""}" style="${formObj[key]===c.id?`border-color:${c.color};background:${c.bg};color:${c.color}`:"color:#64748B"}" onclick="pickCo('${containerId}','${c.id}','${JSON.stringify(formObj).replace(/'/g,"&#39;")}','${key}')"><div style="font-size:20px">${c.icon}</div><div style="margin-top:2px">${c.short}</div></button>`).join("");
+  el.innerHTML=COMPANIES.map(c=>`<button type="button" class="co-pick-btn${formObj.company===c.id?" sel":""}" style="${formObj.company===c.id?`border-color:${c.color};background:${c.bg};color:${c.color}`:"color:#64748B"}" onclick="pickCo('${containerId}','${c.id}')"><div style="font-size:20px">${c.icon}</div><div style="margin-top:2px">${c.short}</div></button>`).join("");
 }
-function pickCo(containerId,id,formJson,key){
-  if(key==="company") taskForm.company=id;
+function pickCo(containerId,id){
+  if(containerId==="t-co-picker") taskForm.company=id;
   else recurForm.company=id;
-  buildCoPicker(containerId,key==="company"?taskForm:recurForm,key);
+  buildCoPicker(containerId,containerId==="t-co-picker"?taskForm:recurForm);
 }
 
-function buildPrPicker(containerId,formObj,key){
-  const el=document.getElementById(containerId);
-  el.innerHTML=PRIORITIES.map(p=>`<button type="button" class="pr-pick-btn${formObj[key]===p.id?" sel":""}" style="${formObj[key]===p.id?`border-color:${p.color};background:${p.bg};color:${p.color}`:""}" onclick="pickPr('${containerId}','${p.id}','${key}')">${p.icon} ${p.label}</button>`).join("");
-}
-function pickPr(containerId,id,key){
-  if(key==="priority") taskForm.priority=id;
+function pickPr(containerId,id){
+  if(containerId==="t-pr-picker") taskForm.priority=id;
   else recurForm.priority=id;
-  buildPrPicker(containerId,key==="priority"?taskForm:recurForm,key);
+  buildPrPicker(containerId,containerId==="t-pr-picker"?taskForm:recurForm);
 }
-
+function buildPrPicker(containerId,formObj){
+  const el=document.getElementById(containerId);
+  el.innerHTML=PRIORITIES.map(p=>`<button type="button" class="pr-pick-btn${formObj.priority===p.id?" sel":""}" style="${formObj.priority===p.id?`border-color:${p.color};background:${p.bg};color:${p.color}`:""}" onclick="pickPr('${containerId}','${p.id}')">${p.icon} ${p.label}</button>`).join("");
+}
 function buildRecurPicker(){
   const el=document.getElementById("r-recur-picker");
   el.innerHTML=RECUR_OPTIONS.map(r=>`<button type="button" class="recur-pick-btn${recurForm.recurring===r.id?" sel":""}" onclick="pickRecur('${r.id}')"><div style="font-size:20px">${r.icon}</div><div style="margin-top:3px;font-size:11px">${r.label.replace('\n','<br>')}</div></button>`).join("");
@@ -1249,8 +1248,8 @@ function openAddTask(co){
   document.getElementById("t-title").value="";
   document.getElementById("t-note").value="";
   document.getElementById("t-date").value=todayStr();
-  buildCoPicker("t-co-picker",taskForm,"company");
-  buildPrPicker("t-pr-picker",taskForm,"priority");
+  buildCoPicker("t-co-picker",taskForm);
+  buildPrPicker("t-pr-picker",taskForm);
   buildCatSelect("t-cat",CATEGORIES[0]);
   document.getElementById("t-save").disabled=true;
   document.getElementById("t-save").classList.add("btn-disabled");
@@ -1268,8 +1267,8 @@ function editTask(id){
   document.getElementById("t-title").value=t.title;
   document.getElementById("t-note").value=t.note||"";
   document.getElementById("t-date").value=t.date||todayStr();
-  buildCoPicker("t-co-picker",taskForm,"company");
-  buildPrPicker("t-pr-picker",taskForm,"priority");
+  buildCoPicker("t-co-picker",taskForm);
+  buildPrPicker("t-pr-picker",taskForm);
   buildCatSelect("t-cat",t.category||CATEGORIES[0]);
   document.getElementById("t-save").disabled=false;
   document.getElementById("t-save").classList.remove("btn-disabled");
@@ -1298,8 +1297,8 @@ function openAddRecur(){
   document.getElementById("recur-modal-title").textContent="🔁 مهمة ثابتة جديدة";
   document.getElementById("r-title").value="";
   document.getElementById("r-note").value="";
-  buildCoPicker("r-co-picker",recurForm,"company_r");
-  buildPrPicker("r-pr-picker",recurForm,"priority_r");
+  buildCoPicker("r-co-picker",recurForm);
+  buildPrPicker("r-pr-picker",recurForm);
   buildRecurPicker();
   buildCatSelect("r-cat",CATEGORIES[0]);
   document.getElementById("r-save").disabled=true;
@@ -1316,8 +1315,8 @@ function editRecur(id){
   document.getElementById("recur-modal-title").textContent="✏️ تعديل المهمة الثابتة";
   document.getElementById("r-title").value=t.title;
   document.getElementById("r-note").value=t.note||"";
-  buildCoPicker("r-co-picker",recurForm,"company_r");
-  buildPrPicker("r-pr-picker",recurForm,"priority_r");
+  buildCoPicker("r-co-picker",recurForm);
+  buildPrPicker("r-pr-picker",recurForm);
   buildRecurPicker();
   buildCatSelect("r-cat",t.category||CATEGORIES[0]);
   document.getElementById("r-save").disabled=false;
@@ -1339,18 +1338,6 @@ function saveRecurTask(){
   saveTpl();renderRecurring();closeRecurModal();
 }
 function closeRecurModal(){document.getElementById("recur-modal").classList.remove("open");}
-
-// Patch pickers to use recurForm correctly
-function pickCo(containerId,id,_,key){
-  if(containerId==="t-co-picker") taskForm.company=id;
-  else recurForm.company=id;
-  buildCoPicker(containerId,containerId==="t-co-picker"?taskForm:recurForm,key);
-}
-function pickPr(containerId,id,key){
-  if(containerId==="t-pr-picker") taskForm.priority=id;
-  else recurForm.priority=id;
-  buildPrPicker(containerId,containerId==="t-pr-picker"?taskForm:recurForm,key);
-}
 
 // Close modals on overlay click
 document.getElementById("task-modal").addEventListener("click",function(e){if(e.target===this)closeTaskModal();});
